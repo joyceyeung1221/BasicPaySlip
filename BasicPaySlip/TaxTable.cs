@@ -8,46 +8,25 @@ namespace BasicPaySlip
         public int Year { get; private set; }
         public List<TaxBracket> TaxRate;
 
-        public TaxTable(int year, List<TaxBracket> taxRate)
+        public TaxTable(int year, List<Dictionary<string,double>> taxRate)
         {
             Year = year;
+            taxRate.ForEach(threshold =>
+            {
+                var taxBracket = createTaxBracket(threshold);
+                TaxRate.Add(taxBracket);
+            });
+        }
+
+        private TaxBracket createTaxBracket(Dictionary<string,double> threshold)
+        {
+            var minIncome = (decimal)threshold["minIncome"];
+            var maxIncome = (decimal)threshold["maxIncome"];
+            var baseAmount = (decimal)threshold["baseAmount"];
+            var taxRate = threshold["taxRate"] / 100;
+
+            return new TaxBracket(minIncome, maxIncome, baseAmount, taxRate);
         }
     }
-    private List<Dictionary<string, double?>> taxRate2018 = new List<Dictionary<string, double?>>()
-    {   new Dictionary<string, double?>()
-            {
-                { "minAmount", 0},
-                { "maxAmount", 18200},
-                { "baseAmount", 0},
-                { "taxRate", 0}
-            },
-        new Dictionary<string, double?>()
-            {
-                { "minAmount", 18201},
-                { "maxAmount", 37000},
-                { "baseAmount", 0},
-                { "taxRate", 19}
-            },
-        new Dictionary<string, double?>()
-            {
-                { "minAmount", 0},
-                { "maxAmount", 18200},
-                { "baseAmount", 0},
-                { "taxRate", 32.5}
-            },
-        new Dictionary<string, double?>()
-            {
-                { "minAmount", 0},
-                { "maxAmount", 18200},
-                { "baseAmount", 0},
-                { "taxRate", 37}
-            },
-        new Dictionary<string, double?>()
-            {
-                { "minAmount", 0},
-                { "maxAmount", null},
-                { "baseAmount", 54232},
-                { "taxRate", 45}
-            }
-    };
+    
 }
