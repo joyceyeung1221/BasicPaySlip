@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BasicPaySlip
 {
@@ -6,7 +7,9 @@ namespace BasicPaySlip
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+
+            new PaySlipGenerator().Run();
+
         }
     }
 }
