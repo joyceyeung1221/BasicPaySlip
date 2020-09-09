@@ -6,30 +6,33 @@ namespace BasicPaySlip
     public class IncomeTax
     {
         public List<TaxTable> TaxTables { get; set; }
+        private DateTime _defaultStartDate;
 
-        public IncomeTax()
+        public IncomeTax(DateTime defaultStartDate)
         {
+            _defaultStartDate = defaultStartDate;
             TaxTables = new List<TaxTable>();
         }
 
-        public decimal Calculate(int year, decimal income)
+        public decimal Calculate(DateTime paymentStartDate, decimal income)
         {
-            var taxBracket = findTaxBracket(income, findTaxTableByYear(year));
+            var taxBracket = FindTaxBracket(income, FindTaxTableByYear(paymentStartDate));
             var taxAmount = taxBracket.BaseAmount + (income - taxBracket.MinIncome) * taxBracket.TaxRate;
 
             return taxAmount;
         }
 
-        private TaxTable findTaxTableByYear(int year)
+        private TaxTable FindTaxTableByYear(DateTime paymentStartDate)
         {
-            return TaxTables.Find(taxTable => taxTable.Year == year);
+            var financialYear = paymentStartDate.Month < _defaultStartDate.Month ? paymentStartDate.Year : paymentStartDate.Year + 1;
+            return TaxTables.Find(taxTable => taxTable.Year == financialYear);
         }
 
-        private TaxBracket findTaxBracket(decimal income, TaxTable taxTable)
+        private TaxBracket FindTaxBracket(decimal income, TaxTable taxTable)
         {
             return taxTable.TaxRate.Find(taxBracket =>
 
-                income > taxBracket.MinIncome && (taxBracket.MaxIncome == null ? true : income < taxBracket.MaxIncome)
+                income > taxBracket.MinIncome && (taxBracket.MaxIncome == null || income < taxBracket.MaxIncome)
 
             );
         }

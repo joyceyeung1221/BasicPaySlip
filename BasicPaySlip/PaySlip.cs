@@ -32,10 +32,9 @@ namespace BasicPaySlip
             _payPeriod = GetPayPeriod(_paymentStartDate);
             _grossIncome = CalculateGrossIncome();
             var incomeTax = InstantiseIncomeTaxTable();
-            var annualIncomeTaxAmount = incomeTax.Calculate(_paymentStartDate.Year, _employee.AnnualSalary);
+            var annualIncomeTaxAmount = incomeTax.Calculate(_paymentStartDate, _employee.AnnualSalary);
             _apportionedIncomeTaxAmount = CalculateApportionedIncomeTax(annualIncomeTaxAmount);
-            var superannuation = new Superannuation(_employee.SuperRate);
-            _superAmount = superannuation.Calculate(_grossIncome);
+            _superAmount = new Superannuation(_employee.SuperRate).Calculate(_grossIncome);
             _netIncome = CalculateNetIncome();
 
         }
@@ -47,7 +46,7 @@ namespace BasicPaySlip
                 $"Gross Income: {RoundToWholeDollar(_grossIncome)}\n" +
                 $"Income Tax: {RoundToWholeDollar(_apportionedIncomeTaxAmount)}\n" +
                 $"Net Income: {RoundToWholeDollar(_netIncome)}\n" +
-                $" Super: {RoundToWholeDollar(_superAmount)}";
+                $"Super: {RoundToWholeDollar(_superAmount)}";
             return text;
         }
 
@@ -63,7 +62,7 @@ namespace BasicPaySlip
             var taxTable = new TaxTable(2018);
             var taxRates = new TaxRates();
             taxTable.AddTaxRate(taxRates.TaxRate2018);
-            var incomeTax = new IncomeTax();
+            var incomeTax = new IncomeTax(new DateTime(07 / 1 / 1900));
             incomeTax.TaxTables.Add(taxTable);
             return incomeTax;
         }
@@ -82,7 +81,7 @@ namespace BasicPaySlip
 
         private decimal CalculateNetIncome()
         {
-            return _grossIncome - _superAmount;
+            return _grossIncome - _apportionedIncomeTaxAmount;
         }
 
         private DateTime[] GetPayPeriod(DateTime paymentStartDate)
@@ -97,7 +96,6 @@ namespace BasicPaySlip
         private DateTime AdjustStartDate(DateTime paymentStartDate)
         {
             var firstDayOfMonth = new DateTime(paymentStartDate.Year, paymentStartDate.Month, 1);
-            Console.WriteLine($"Payment start date on the payslip will be adjusted to {firstDayOfMonth}");
             return firstDayOfMonth;
         }
     }

@@ -7,29 +7,36 @@ namespace BasicPaySlip
 {
     public class PaySlipGenerator
     {
-        public PaySlipGenerator()
+        private int _supportedFinancialYear;
+        private DateTime _defaultStartDateOfFinancialYear;
+        private Validation _validation;
+
+        public PaySlipGenerator(int financialYear, DateTime fyStartDate)
         {
+            _validation = new Validation();
+            _supportedFinancialYear = financialYear;
+            _defaultStartDateOfFinancialYear = fyStartDate;
         }
 
         public void Run()
         {
             var employee = recordEmployeeDetails();
             var paymentStartDate = getStartDate();
-            write("Your payslip has been generated:\n");
-            write(new PaySlip(paymentStartDate, employee).Display());
-            write("\nThank you for using MYOB!");
+            Helper.DisplayOutput("Your payslip has been generated:\n");
+            Helper.DisplayOutput(new PaySlip(paymentStartDate, employee).Display());
+            Helper.DisplayOutput("\nThank you for using MYOB!");
 
         }
 
         private Employee recordEmployeeDetails()
         {
 
-                var firstName = getInput("first name");
-                var lastName = getInput("last name");
-                var annualSalary = decimal.Parse(getInput("annual salary"));
-                var superRate = double.Parse(getInput("superannuation rate"));
+            var firstName = getInput("first name");
+            var lastName = getInput("last name");
+            var annualSalary = decimal.Parse(getInput("annual salary"));
+            var superRate = double.Parse(getInput("superannuation rate"));
 
-                return createEmployee(firstName, lastName, annualSalary, superRate);
+            return new Employee(firstName, lastName, annualSalary, superRate);
 
         }
 
@@ -37,12 +44,14 @@ namespace BasicPaySlip
         {
             try
             {
-                write($"Please enter your {fieldName}");
-                return validateFieldInput(Console.ReadLine(),fieldName);
+                Helper.DisplayOutput($"Please enter your {fieldName}");
+
+                return _validation.CheckFieldInput(Console.ReadLine(), fieldName);
             }
-            catch(InputIsNotValidException e)
+            catch (InputIsNotValidException e)
             {
-                write(e.Message);
+                Helper.DisplayOutput(e.Message);
+
                 return getInput(fieldName);
             }
         }
@@ -51,50 +60,16 @@ namespace BasicPaySlip
         {
             try
             {
-            write("Please enter payment start date in mm/dd/yyyy");
-            DateTime input;
-            var date = DateTime.TryParse(Console.ReadLine(), out input);
-            if (date == false)
-                {
-                    throw (new InputIsNotValidException("Please check date format"));
-                }
-                return input;
-            } catch (InputIsNotValidException e)
-                {
-                    write(e.Message);
-                    return getStartDate();
-                }
-        }
-
-        private string validateFieldInput(string input, string fieldName)
-        {
-            var numbericInput = new string[] { "annual salary", "superannuation rate" };
-            if (input == null)
-            {
-                throw (new InputIsNotValidException("Invalid Input - value is null"));
+                Helper.DisplayOutput("Please enter payment start date in mm/dd/yyyy");
+                var input = Console.ReadLine();
+                return _validation.CheckPaymentStartDate(input,_supportedFinancialYear,_defaultStartDateOfFinancialYear);
             }
-            else if (!numbericInput.Contains(fieldName) && !Regex.IsMatch(input, @"^[a-zA-Z.]+$"))
+            catch (InputIsNotValidException e)
             {
-                throw (new InputIsNotValidException("Invalid Input - Please use characters only"));
-            }
-            else if (numbericInput.Contains(fieldName) && !decimal.TryParse(input, out decimal result))
-            {
-                throw(new InputIsNotValidException("Invalid Input"));
-            }
-            else
-            {
-                return input;
+                Helper.DisplayOutput(e.Message);
+                return getStartDate();
             }
         }
 
-        private Employee createEmployee(string firstName, string lastName, decimal annualSalary, double superRate)
-        {
-            return new Employee(firstName, lastName, annualSalary, superRate);
-        }
-
-        private void write(string text)
-        {
-            Console.WriteLine(text);
-        }
     }
 }
